@@ -845,3 +845,45 @@ namespace Microsoft.FSharp.Core.CompilerServices
         |> withOptimize
         |> compileAndRun
         |> shouldSucceed
+
+    [<InlineData(true)>]        // RealSig
+    [<InlineData(false)>]       // Regular
+    [<Theory>]
+    let ``nested generic closure - small sample`` (realSig) =
+        
+        FSharp """namespace Tests
+
+#nowarn "52" // The value has been copied to ensure the original is not mutated by this operation
+
+[<Sealed>]
+type MyConcatEnumerator<'T,'U when 'U :> seq<'T>>(sources: seq<'U>) =
+    let outerEnum = sources.GetEnumerator()
+
+    member x.MoveNext() =
+        let rec takeInner () =
+            let rec takeOuter() =
+                if outerEnum.MoveNext() then                     
+                    takeInner ()
+                else
+                    false
+            takeOuter()
+        takeInner ()
+
+module doIt =
+    let doItAllInOneFunc() =
+        let innerSegment = [|1uy;|]
+        let x = [|innerSegment;innerSegment|]
+        let enumerator = new MyConcatEnumerator<_,_>(x) 
+        enumerator.MoveNext() |> ignore
+    doItAllInOneFunc()
+"""
+        |> asExe
+        |> withRealInternalSignature realSig
+        |> withOptimize
+        |> compile
+        |> verifyIL ["abc"] // System.InvalidOperationException: Could not execute the method because either the method itself or the containing type is not fully instantiated.
+
+
+
+
+
