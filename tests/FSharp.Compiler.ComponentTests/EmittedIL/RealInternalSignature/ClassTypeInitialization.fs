@@ -849,9 +849,9 @@ namespace Microsoft.FSharp.Core.CompilerServices
     [<InlineData(true)>]        // RealSig
     [<InlineData(false)>]       // Regular
     [<Theory>]
-    let ``nested generic closure - small sample`` (realSig) =
+    let ``nested generic closure - small sample - perfRegressionRealSig`` (realSig) =
         
-        FSharp """namespace Tests
+        FSharp """namespace GenericClosureTests
 
 #nowarn "52" // The value has been copied to ensure the original is not mutated by this operation
 

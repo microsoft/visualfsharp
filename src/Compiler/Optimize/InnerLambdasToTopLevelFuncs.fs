@@ -20,7 +20,7 @@ open FSharp.Compiler.TypedTreeOps
 open FSharp.Compiler.TypedTreeOps.DebugPrint
 open FSharp.Compiler.TcGlobals
 
-let verboseTLR = false
+let verboseTLR = true
 
 let InnerLambdasToTopLevelFunctionsStackGuardDepth = StackGuard.GetDepthOption "InnerLambdasToTopLevelFunctions"
 
@@ -1347,7 +1347,11 @@ let RecreateUniqueBounds g expr =
 // entry point
 //-------------------------------------------------------------------------
 
-let MakeTopLevelRepresentationDecisions ccu g expr =
+let MakeTopLevelRepresentationDecisions ccu (g:TcGlobals) (expr:CheckedImplFile) =
+   use diagFile = new System.IO.StreamWriter($"D:\\\\repro\\inner-lambdas-{System.Environment.Version.ToString()}-realSig_{g.realsig.ToString()}.txt",true)
+   diagFile.WriteLine("Starting a new session")
+   diagFile.WriteLine(expr.QualifiedNameOfFile.Text)
+   setDiagnosticsChannel (Some diagFile)
    try
       // pass1: choose the f to be TLR with arity(f)
       let tlrS, topValS, arityM = Pass1_DetermineTLRAndArities.DetermineTLRAndArities g expr
