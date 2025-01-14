@@ -34,7 +34,7 @@ module SignatureGenerationTests =
             |> fun s -> s.Split('\n')
             |> Array.map (fun s -> s.TrimEnd(' '))
 
-        Assert.shouldBeEquivalentTo expected2 actual
+        Assert.shouldBe expected2 actual
     
     [<Fact>]
     let ``can generate sigs with comments`` () = 

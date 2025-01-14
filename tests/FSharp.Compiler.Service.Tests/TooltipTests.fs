@@ -433,7 +433,7 @@ type Bar() =
     let checkResults = getCheckResults source Array.empty
     checkResults.GetToolTip(7, 18, "    member val Foo = \"bla\" with get, set", [ "Foo" ], FSharpTokenTag.Identifier)
     |> assertAndGetSingleToolTipText
-    |> Assert.shouldBeEquivalentTo "property Bar.Foo: string with get, set"
+    |> Assert.shouldBe "property Bar.Foo: string with get, set"
 
 [<FactForNETCOREAPP>]
 let ``Should display nullable Csharp code analysis annotations on method argument`` () =
@@ -444,7 +444,7 @@ let exists() = System.IO.Path.Exists(null:string)
     let checkResults = getCheckResults source [|"--checknulls+";"--langversion:preview"|]
     checkResults.GetToolTip(2, 36, "let exists() = System.IO.Path.Exists(null:string)", [ "Exists" ], FSharpTokenTag.Identifier)
     |> assertAndGetSingleToolTipText
-    |> Assert.shouldBeEquivalentTo "System.IO.Path.Exists([<NotNullWhenAttribute (true)>] path: string | null) : bool"
+    |> Assert.shouldBe "System.IO.Path.Exists([<NotNullWhenAttribute (true)>] path: string | null) : bool"
     
 [<FactForNETCOREAPP>]
 let ``Should display xml doc on a nullable BLC method`` () =
@@ -456,9 +456,9 @@ let exists() = System.IO.Path.Exists(null:string)
     checkResults.GetToolTip(2, 36, "let exists() = System.IO.Path.Exists(null:string)", [ "Exists" ], FSharpTokenTag.Identifier)
     |> assertAndExtractTooltip
     |> fun (text,xml,remarks) ->
-            text |> Assert.shouldBeEquivalentTo "System.IO.Path.Exists([<NotNullWhenAttribute (true)>] path: string | null) : bool"
+            text |> Assert.shouldBe "System.IO.Path.Exists([<NotNullWhenAttribute (true)>] path: string | null) : bool"
             match xml with
-            | FSharpXmlDoc.FromXmlFile (_dll,sigPath) -> sigPath |> Assert.shouldBeEquivalentTo "M:System.IO.Path.Exists(System.String)"
+            | FSharpXmlDoc.FromXmlFile (_dll,sigPath) -> sigPath |> Assert.shouldBe "M:System.IO.Path.Exists(System.String)"
             | _ -> failwith $"Xml wrong type %A{xml}"
 
             
@@ -477,10 +477,10 @@ let exists() = myFunc(null)
     |> fun (text,xml,remarks) ->
             match xml with
             | FSharpXmlDoc.FromXmlText t ->
-                 t.UnprocessedLines |> Assert.shouldBeEquivalentTo [|" This is a xml doc above myFunc"|]
+                 t.UnprocessedLines |> Assert.shouldBe [|" This is a xml doc above myFunc"|]
             | _ -> failwith $"xml was %A{xml}"
-            text |> Assert.shouldBeEquivalentTo "val myFunc: x: string | null -> string | null"            
-            remarks |> Assert.shouldBeEquivalentTo (Some "Full name: Foo.myFunc")
+            text |> Assert.shouldBe "val myFunc: x: string | null -> string | null"            
+            remarks |> Assert.shouldBe (Some "Full name: Foo.myFunc")
 
 
 [<FactForNETCOREAPP>]
@@ -492,7 +492,7 @@ let getPath() = System.IO.Path.GetFileName(null:string)
     let checkResults = getCheckResults source [|"--checknulls+";"--langversion:preview"|]
     checkResults.GetToolTip(2, 42, "let getPath() = System.IO.Path.GetFileName(null:string)", [ "GetFileName" ], FSharpTokenTag.Identifier)   
     |> assertAndGetSingleToolTipText
-    |> Assert.shouldBeEquivalentTo ("""[<return:NotNullIfNotNullAttribute ("path")>]
+    |> Assert.shouldBe ("""[<return:NotNullIfNotNullAttribute ("path")>]
 System.IO.Path.GetFileName(path: string | null) : string | null""" |> normalize)
 
 [<FactForNETCOREAPP>]
@@ -503,7 +503,7 @@ let success,version = System.Version.TryParse(null)
     let checkResults = getCheckResults source [|"--checknulls+";"--langversion:preview"|]
     checkResults.GetToolTip(2, 45, "let success,version = System.Version.TryParse(null)", [ "TryParse" ], FSharpTokenTag.Identifier)   
     |> assertAndGetSingleToolTipText
-    |> Assert.shouldBeEquivalentTo ("""System.Version.TryParse([<NotNullWhenAttribute (true)>] input: string | null, [<NotNullWhenAttribute (true)>] result: byref<System.Version | null>) : bool""")
+    |> Assert.shouldBe ("""System.Version.TryParse([<NotNullWhenAttribute (true)>] input: string | null, [<NotNullWhenAttribute (true)>] result: byref<System.Version | null>) : bool""")
 
 [<FactForNETCOREAPP>]
 let ``Display with nullable annotations can be squashed`` () =   
@@ -513,7 +513,7 @@ let success,version = System.Version.TryParse(null)
     let checkResults = getCheckResults source [|"--checknulls+";"--langversion:preview"|]
     checkResults.GetToolTip(2, 45, "let success,version = System.Version.TryParse(null)", [ "TryParse" ], FSharpTokenTag.Identifier,width=100)   
     |> assertAndGetSingleToolTipText
-    |> Assert.shouldBeEquivalentTo ("""System.Version.TryParse([<NotNullWhenAttribute (true)>] input: string | null,
+    |> Assert.shouldBe ("""System.Version.TryParse([<NotNullWhenAttribute (true)>] input: string | null,
                         [<NotNullWhenAttribute (true)>] result: byref<System.Version | null>) : bool""" |> normalize)
     
 [<FactForNETCOREAPP>]
@@ -559,4 +559,4 @@ let doIt(myAction : Action<int>) = myAction.Invoke(42)
     let checkResults = getCheckResults source [|"--langversion:preview"|]
     checkResults.GetToolTip(3, 43, "let doIt(myAction : Action<int>) = myAction.Invoke(42)", [ "myAction" ], FSharpTokenTag.Identifier)   
     |> assertAndGetSingleToolTipText
-    |> Assert.shouldBeEquivalentTo ("""val myAction: Action<int>""" |> normalize)
+    |> Assert.shouldBe("""val myAction: Action<int>""" |> normalize)
