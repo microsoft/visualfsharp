@@ -230,7 +230,7 @@ let zip4 (l1: 'a list) (l2: 'b list) (l3: 'c list) (l4: 'd list) =
 
     let actual = getTypeHints document
 
-    actual |> Assert.shouldBeEquivalentTo expected
+    actual |> Assert.shouldBe expected
 
 [<Fact>]
 let ``Hints are not shown for lambda return types`` () =
@@ -319,7 +319,7 @@ type Number<'T when IAddition<'T>>(value: 'T) =
 
     let actual = getTypeHints document
 
-    actual |> Assert.shouldBeEquivalentTo expected
+    actual |> Assert.shouldBe expected
 
 [<Fact>]
 let ``Hints are not shown when type is specified`` () =
