@@ -1,4 +1,4 @@
-﻿module TypeChecks.ReuseTcResultsTests
+﻿namespace TypeChecks.ReuseTcResultsTests
 
 open System.Collections.Generic
 open System.Diagnostics

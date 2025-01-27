@@ -113,7 +113,7 @@ module ILChecker =
 
         ilFilePath
 
-    let private generateIL (dllFilePath: string) ildasmArgs =
+    let generateIL (dllFilePath: string) ildasmArgs =
         let assemblyName = Some (Path.GetFileNameWithoutExtension dllFilePath)
         let ilFilePath = generateIlFile dllFilePath ildasmArgs
         let normalizedText = normalizeILText assemblyName (File.ReadAllText(ilFilePath))
