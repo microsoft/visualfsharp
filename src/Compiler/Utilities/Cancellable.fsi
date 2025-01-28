@@ -1,6 +1,5 @@
 namespace FSharp.Compiler
 
-open System
 open System.Threading
 
 [<Sealed>]
@@ -33,7 +32,7 @@ type internal Cancellable<'T> = Cancellable of (CancellationToken -> ValueOrCanc
 module internal Cancellable =
 
     /// Run a cancellable computation using the given cancellation token
-    val inline run: ct: CancellationToken -> Cancellable<'T> -> ValueOrCancelled<'T>
+    val run: ct: CancellationToken -> Cancellable<'T> -> ValueOrCancelled<'T>
 
     val fold: f: ('State -> 'T -> Cancellable<'State>) -> acc: 'State -> seq: seq<'T> -> Cancellable<'State>
 

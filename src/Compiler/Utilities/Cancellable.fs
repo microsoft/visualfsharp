@@ -61,7 +61,7 @@ type Cancellable<'T> = Cancellable of (CancellationToken -> ValueOrCancelled<'T>
 
 module Cancellable =
 
-    let inline run (ct: CancellationToken) (Cancellable oper) =
+    let run (ct: CancellationToken) (Cancellable oper) =
         if ct.IsCancellationRequested then
             ValueOrCancelled.Cancelled(OperationCanceledException ct)
         else
