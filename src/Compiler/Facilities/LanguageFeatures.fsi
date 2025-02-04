@@ -89,6 +89,7 @@ type LanguageFeature =
     | UseTypeSubsumptionCache
     | DeprecatePlacesWhereSeqCanBeOmitted
     | SupportValueOptionsAsOptionalParameters
+    | SupportCallerArgumentExpression
 
 /// LanguageVersion management
 type LanguageVersion =
