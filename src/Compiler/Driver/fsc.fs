@@ -164,25 +164,39 @@ let TypeCheck
 
         let eagerFormat (diag: PhasedDiagnostic) = diag.EagerlyFormatCore true
 
-        let cachingDriver = CachingDriver(tcConfig)
-        if cachingDriver.CanReuseTcResults(inputs) then
-            cachingDriver.ReuseTcResults inputs tcInitialState
-        else
-            let tcState, topAttrs, declaredImpls, tcEnvAtEndOfLastFile =
-                CheckClosedInputSet(
-                    ctok,
-                    diagnosticsLogger.CheckForErrors,
-                    tcConfig,
-                    tcImports,
-                    tcGlobals,
-                    None,
-                    tcInitialState,
-                    eagerFormat,
-                    inputs
-                )
+        if tcConfig.reuseTcResults = ReuseTcResults.On then
+            let cachingDriver = CachingDriver(tcConfig)
+            if cachingDriver.CanReuseTcResults(inputs) then
+                cachingDriver.ReuseTcResults inputs tcInitialState
+            else
+                let tcState, topAttrs, declaredImpls, tcEnvAtEndOfLastFile =
+                    CheckClosedInputSet(
+                        ctok,
+                        diagnosticsLogger.CheckForErrors,
+                        tcConfig,
+                        tcImports,
+                        tcGlobals,
+                        None,
+                        tcInitialState,
+                        eagerFormat,
+                        inputs
+                    )
 
-            cachingDriver.CacheTcResults(tcState, topAttrs, declaredImpls, tcEnvAtEndOfLastFile, inputs, tcGlobals, outfile)
-            tcState, topAttrs, declaredImpls, tcEnvAtEndOfLastFile
+                cachingDriver.CacheTcResults(tcState, topAttrs, declaredImpls, tcEnvAtEndOfLastFile, inputs, tcGlobals, outfile)
+                tcState, topAttrs, declaredImpls, tcEnvAtEndOfLastFile
+        else
+            CheckClosedInputSet(
+                ctok,
+                diagnosticsLogger.CheckForErrors,
+                tcConfig,
+                tcImports,
+                tcGlobals,
+                None,
+                tcInitialState,
+                eagerFormat,
+                inputs
+            )
+
     with exn ->
         errorRecovery exn rangeStartup
         exiter.Exit 1
@@ -482,6 +496,8 @@ let main1
         diagnosticsLoggerProvider: IDiagnosticsLoggerProvider,
         disposables: DisposablesTracker
     ) =
+
+    CompilerGlobalState.stampCount <- 0L
 
     // See Bug 735819
     let lcidFromCodePage =

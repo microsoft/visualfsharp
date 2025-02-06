@@ -949,17 +949,17 @@ type TcAssemblyResolutions(tcConfig: TcConfig, results: AssemblyResolution list,
 
         for UnresolvedAssemblyReference (referenceText, _ranges) in unresolved do
             if referenceText.Contains("mscorlib") then
-                //Debug.Assert(false, sprintf "whoops, did not resolve mscorlib: '%s'%s" referenceText addedText)
+                Debug.Assert(false, sprintf "whoops, did not resolve mscorlib: '%s'%s" referenceText addedText)
                 itFailed <- true
 
         for x in frameworkDLLs do
             if not (FileSystem.IsPathRootedShim(x.resolvedPath)) then
-                //Debug.Assert(false, sprintf "frameworkDLL should be absolute path: '%s'%s" x.resolvedPath addedText)
+                Debug.Assert(false, sprintf "frameworkDLL should be absolute path: '%s'%s" x.resolvedPath addedText)
                 itFailed <- true
 
         for x in nonFrameworkReferences do
             if not (FileSystem.IsPathRootedShim(x.resolvedPath)) then
-                //Debug.Assert(false, sprintf "nonFrameworkReference should be absolute path: '%s'%s" x.resolvedPath addedText)
+                Debug.Assert(false, sprintf "nonFrameworkReference should be absolute path: '%s'%s" x.resolvedPath addedText)
                 itFailed <- true
 
         if itFailed then

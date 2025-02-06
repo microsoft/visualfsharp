@@ -120,7 +120,7 @@ module ILChecker =
         File.WriteAllText(ilFilePath, normalizedText)
         normalizedText
 
-    let private compareIL assemblyName (actualIL: string) expectedIL =
+    let compareIL assemblyName (actualIL: string) expectedIL =
 
         let mutable errorMsgOpt = None
 
