@@ -2568,20 +2568,17 @@ and p_syn_open_decl_target (x: SynOpenDeclTarget) st =
             st
 
 and p_ccu_data (x: CcuData) st =
-    p_tup9
-        (p_option p_string) 
-        p_ILScopeRef
-        p_stamp
-        (p_option p_string)
-        p_string
-        p_bool
-        p_bool
-        p_bool
-        p_entity_spec_data_new
-        (x.FileName, x.ILScopeRef, x.Stamp, x.QualifiedName,
-         x.SourceCodeDirectory, x.IsFSharp, x.IsProviderGenerated, 
-         x.UsesFSharp20PlusQuotations, x.Contents)
-        st
+    p_option p_string x.FileName st
+    p_ILScopeRef x.ILScopeRef st
+    p_stamp x.Stamp st
+    p_option p_string x.QualifiedName st
+    p_string x.SourceCodeDirectory st
+    p_bool x.IsFSharp st
+#if !NO_TYPEPROVIDERS
+    p_bool x.IsProviderGenerated st
+#endif
+    p_bool x.UsesFSharp20PlusQuotations st
+    p_entity_spec_data_new x.Contents st
 
 and p_ccuref_new (x: CcuThunk) st =
     p_tup2
@@ -3475,9 +3472,11 @@ and u_ccu_data st : CcuData =
         QualifiedName = qualifiedName
         SourceCodeDirectory = sourceCodeDirectory
         IsFSharp = isFSharp
+#if !NO_TYPEPROVIDERS
         IsProviderGenerated = isProviderGenerated
         InvalidateEvent = Unchecked.defaultof<_>
         ImportProvidedType = Unchecked.defaultof<_>
+#endif
         UsesFSharp20PlusQuotations = usesFSharp20PlusQuotations
         Contents = contents
         TryGetILModuleDef = Unchecked.defaultof<_>
