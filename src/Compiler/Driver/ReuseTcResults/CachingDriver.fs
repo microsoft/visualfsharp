@@ -162,7 +162,7 @@ type CachingDriver(tcConfig: TcConfig) =
 
         let rawData = tcInfo.RawData
 
-        let topAttrs : TopAttribs =
+        let topAttrs: TopAttribs =
             {
                 mainMethodAttrs = rawData.MainMethodAttrs
                 netModuleAttrs = rawData.NetModuleAttrs
@@ -184,7 +184,7 @@ type CachingDriver(tcConfig: TcConfig) =
                 References = getThisCompilationReferences tcConfig.referencedDLLs
             }
 
-        writeThisTcData thisTcData 
+        writeThisTcData thisTcData
 
         let tcInfo =
             {
@@ -194,13 +194,8 @@ type CachingDriver(tcConfig: TcConfig) =
                 DeclaredImpls = declaredImpls
             }
 
-        let encodedData = EncodeTypecheckingData(
-            tcConfig,
-            tcGlobals,
-            tcState.Ccu,
-            outfile,
-            false,
-            tcInfo)        
+        let encodedData =
+            EncodeTypecheckingData(tcConfig, tcGlobals, tcState.Ccu, outfile, false, tcInfo)
 
         let resource = encodedData[0].GetBytes().ToArray()
         File.WriteAllBytes("tc", resource)

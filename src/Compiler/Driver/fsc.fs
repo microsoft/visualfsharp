@@ -166,6 +166,7 @@ let TypeCheck
 
         if tcConfig.reuseTcResults = ReuseTcResults.On then
             let cachingDriver = CachingDriver(tcConfig)
+
             if cachingDriver.CanReuseTcResults(inputs) then
                 cachingDriver.ReuseTcResults inputs tcInitialState
             else
