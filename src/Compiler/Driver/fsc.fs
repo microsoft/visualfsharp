@@ -150,7 +150,8 @@ let TypeCheck
         tcEnv0,
         openDecls0,
         inputs,
-        exiter: Exiter
+        exiter: Exiter,
+        outfile
     ) =
     try
         if isNil inputs then
@@ -163,21 +164,40 @@ let TypeCheck
 
         let eagerFormat (diag: PhasedDiagnostic) = diag.EagerlyFormatCore true
 
-        let cachingDriver = CachingDriver(tcConfig)
-        if cachingDriver.CanReuseTcResults(inputs) then
-            // do nothing, yet
-            ()
+        if tcConfig.reuseTcResults = ReuseTcResults.On then
+            let cachingDriver = CachingDriver(tcConfig)
 
-        CheckClosedInputSet(
-            ctok,
-            diagnosticsLogger.CheckForErrors,
-            tcConfig,
-            tcImports,
-            tcGlobals,
-            None,
-            tcInitialState,
-            eagerFormat,
-            inputs)
+            if cachingDriver.CanReuseTcResults(inputs) then
+                cachingDriver.ReuseTcResults inputs tcInitialState
+            else
+                let tcState, topAttrs, declaredImpls, tcEnvAtEndOfLastFile =
+                    CheckClosedInputSet(
+                        ctok,
+                        diagnosticsLogger.CheckForErrors,
+                        tcConfig,
+                        tcImports,
+                        tcGlobals,
+                        None,
+                        tcInitialState,
+                        eagerFormat,
+                        inputs
+                    )
+
+                cachingDriver.CacheTcResults(tcState, topAttrs, declaredImpls, tcEnvAtEndOfLastFile, inputs, tcGlobals, outfile)
+                tcState, topAttrs, declaredImpls, tcEnvAtEndOfLastFile
+        else
+            CheckClosedInputSet(
+                ctok,
+                diagnosticsLogger.CheckForErrors,
+                tcConfig,
+                tcImports,
+                tcGlobals,
+                None,
+                tcInitialState,
+                eagerFormat,
+                inputs
+            )
+
     with exn ->
         errorRecovery exn rangeStartup
         exiter.Exit 1
@@ -478,6 +498,8 @@ let main1
         disposables: DisposablesTracker
     ) =
 
+    CompilerGlobalState.stampCount <- 0L
+
     // See Bug 735819
     let lcidFromCodePage =
         let thread = Thread.CurrentThread
@@ -698,7 +720,7 @@ let main1
     let inputs = inputs |> List.map fst
 
     let tcState, topAttrs, typedAssembly, _tcEnvAtEnd =
-        TypeCheck(ctok, tcConfig, tcImports, tcGlobals, diagnosticsLogger, assemblyName, tcEnv0, openDecls0, inputs, exiter)
+        TypeCheck(ctok, tcConfig, tcImports, tcGlobals, diagnosticsLogger, assemblyName, tcEnv0, openDecls0, inputs, exiter, outfile)
 
     AbortOnError(diagnosticsLogger, exiter)
     ReportTime tcConfig "Typechecked"
