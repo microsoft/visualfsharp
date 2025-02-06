@@ -3451,20 +3451,18 @@ and u_syn_open_decl_target st : SynOpenDeclTarget =
         ufailwith st (nameof u_syn_open_decl_target)
 
 and u_ccu_data st : CcuData =
-    let fileName, ilScopeRef, stamp, qualifiedName,
-        sourceCodeDirectory, isFSharp, isProviderGenerated,
-        usesFSharp20PlusQuotations, contents = 
-            u_tup9
-                (u_option u_string)
-                u_ILScopeRef
-                u_stamp
-                (u_option u_string)
-                u_string
-                u_bool
-                u_bool
-                u_bool
-                u_entity_spec_data_new
-                st
+    let fileName = u_option u_string st
+    let ilScopeRef = u_ILScopeRef st
+    let stamp = u_stamp st
+    let qualifiedName = u_option u_string st
+    let sourceCodeDirectory = u_string st
+    let isFSharp = u_bool st
+#if !NO_TYPEPROVIDERS
+    let isProviderGenerated = u_bool st
+#endif
+    let usesFSharp20PlusQuotations = u_bool st
+    let contents = u_entity_spec_data_new st
+
     {
         FileName = fileName
         ILScopeRef = ilScopeRef
