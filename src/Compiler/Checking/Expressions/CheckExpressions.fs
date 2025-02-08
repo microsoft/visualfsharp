@@ -6271,24 +6271,53 @@ and TcExprIntegerForLoop (cenv: cenv) overallTy env tpenv (spFor, spTo, id, star
     let g = cenv.g
     UnifyTypes cenv env m overallTy.Commit g.unit_ty
 
-    let startExpr, tpenv =
-        let env = { env with eIsControlFlow = false }
-        TcExpr cenv (MustEqual g.int_ty) env tpenv start
+    let tryTcStartAndFinishAsInt32 tpenv start finish =
+        let tryTcInt32 tpenv synExpr =
+            let env = { env with eIsControlFlow = false }
+            let expr, ty, tpenv = TcExprOfUnknownType cenv env tpenv synExpr
+            if typeEquivAux EraseMeasures g ty g.int32_ty then Some (tpenv, expr)
+            else None
 
-    let finishExpr, tpenv =
-        let env = { env with eIsControlFlow = false }
-        TcExpr cenv (MustEqual g.int_ty) env tpenv finish
+        tryTcInt32 tpenv start
+        |> Option.bind (fun (tpenv, start) ->
+            tryTcInt32 tpenv finish
+            |> Option.map (fun (tpenv, finish) -> tpenv, start, finish))
 
-    let idv, _ = mkLocal id.idRange id.idText g.int_ty
-    let envinner = AddLocalVal g cenv.tcSink m idv env
-    let envinner = { envinner with eIsControlFlow = true }
+    // First try to typecheck the start and finish expressions as int32
+    // for backwards compatibility. Otherwise, treat the for-loop
+    // as though it were a for-each loop over a range expression.
+    match tryTcStartAndFinishAsInt32 tpenv start finish with
+    | Some (tpenv, startExpr, finishExpr) ->
+        let idv, _ = mkLocal id.idRange id.idText g.int_ty
+        let envinner = AddLocalVal g cenv.tcSink m idv env
+        let envinner = { envinner with eIsControlFlow = true }
 
-    // notify name resolution sink about loop variable
-    let item = Item.Value(mkLocalValRef idv)
-    CallNameResolutionSink cenv.tcSink (idv.Range, env.NameEnv, item, emptyTyparInst, ItemOccurrence.Binding, env.AccessRights)
+        // notify name resolution sink about loop variable
+        let item = Item.Value(mkLocalValRef idv)
+        CallNameResolutionSink cenv.tcSink (idv.Range, env.NameEnv, item, emptyTyparInst, ItemOccurrence.Binding, env.AccessRights)
 
-    let bodyExpr, tpenv = TcStmt cenv envinner tpenv body
-    mkFastForLoop g (spFor, spTo, m, idv, startExpr, dir, finishExpr, bodyExpr), tpenv
+        let bodyExpr, tpenv = TcStmt cenv envinner tpenv body
+        mkFastForLoop g (spFor, spTo, m, idv, startExpr, dir, finishExpr, bodyExpr), tpenv
+
+    | None ->
+        let pat = SynPat.Named (SynIdent (id, None), false, None, id.idRange)
+
+        let rangeExpr =
+            let mTo = match spTo with DebugPointAtInOrTo.Yes m -> m | DebugPointAtInOrTo.No -> Range.range0
+
+            if dir then
+                //   for x = start to finish do …
+                // → for x in start..finish do …
+                mkSynInfix mTo start ".." finish
+            else
+                //   for x = start downto finish do …
+                // → for x in start..-1..finish do …
+                let minus = mkSynOperator mTo "~-"
+                let one = mkSynLidGet mTo ["Microsoft"; "FSharp"; "Core"; "LanguagePrimitives"] "GenericOne"
+                let step = mkSynApp1 minus one mTo
+                mkSynTrifix (m.MakeSynthetic()) ".. .." start step finish
+
+        TcForEachExpr cenv overallTy env tpenv (false, true, pat, rangeExpr, body, m, spFor, spTo, m)
 
 and TcExprTryWith (cenv: cenv) overallTy env tpenv (synBodyExpr, synWithClauses, mWithToLast, mTryToLast, spTry, spWith) =
     let g = cenv.g
