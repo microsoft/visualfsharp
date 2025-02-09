@@ -890,7 +890,6 @@ type StackGuard(maxDepth: int, name: string) =
 
         try
             if depth % maxDepth = 0 then
-
                 async {
                     do! Async.SwitchToNewThread()
                     Thread.CurrentThread.Name <- $"F# Extra Compilation Thread for {name} (depth {depth})"
@@ -901,10 +900,6 @@ type StackGuard(maxDepth: int, name: string) =
                 f ()
         finally
             depth <- depth - 1
-
-    [<DebuggerHidden; DebuggerStepThrough>]
-    member x.GuardCancellable(original: Cancellable<'T>) =
-        Cancellable(fun ct -> x.Guard(fun () -> Cancellable.run ct original))
 
     static member val DefaultDepth =
 #if DEBUG
