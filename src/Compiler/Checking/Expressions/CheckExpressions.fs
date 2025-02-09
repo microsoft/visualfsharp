@@ -6272,11 +6272,14 @@ and TcExprIntegerForLoop (cenv: cenv) overallTy env tpenv (spFor, spTo, id, star
     UnifyTypes cenv env m overallTy.Commit g.unit_ty
 
     let tryTcStartAndFinishAsInt32 tpenv start finish =
-        let tryTcInt32 tpenv synExpr =
+        let tryTcInt32 tpenv (synExpr: SynExpr) =
             let env = { env with eIsControlFlow = false }
             let expr, ty, tpenv = TcExprOfUnknownType cenv env tpenv synExpr
-            if typeEquivAux EraseMeasures g ty g.int32_ty then Some (tpenv, expr)
-            else None
+
+            if AddCxTypeEqualsTypeUndoIfFailed env.DisplayEnv cenv.css synExpr.Range ty g.int_ty then
+                Some (tpenv, expr)
+            else
+                None
 
         tryTcInt32 tpenv start
         |> Option.bind (fun (tpenv, start) ->
